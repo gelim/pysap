@@ -199,6 +199,7 @@ ms_adm_opcode_values = {
     0x4e: "AD_SOFT_CANCEL",
     0x55: "AD_SYNC_LOAD_FMT",
     0x56: "AD_GET_NILIST_PORT",
+    0x5a: "AD_UNKNOWN",
 }
 """Message Server Administration messages opcode values"""
 
