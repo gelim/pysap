@@ -46,6 +46,7 @@ ms_domain_values_inv = {v: k for k, v in ms_domain_values.items()}
 
 # Message Server Flag values
 ms_flag_values = {
+    0x00: "MS_UNKNOWN",
     0x01: "MS_ONE_WAY",  # One way messages are sent from the client to server and doesn't trigger a response
                          # from the server
     0x02: "MS_REQUEST",
@@ -192,13 +193,13 @@ ms_adm_opcode_values = {
     0x48: "AD_LOAD_INFO",
     0x49: "AD_TEST",
     0x4a: "AD_HANDLE_ACL",
-    #0x4b: "AD_ENQ_LOG_RESET", # patched from binary analysis
-    0x4b: "AD_PROFILE2",
+    0x4b: "AD_PROFILE2", # from here, extracted from bin analysis
     0x4c: "AD_RSCP_ASYNC",
     0x4d: "AD_BATCH_INFO",
     0x4e: "AD_SOFT_CANCEL",
     0x55: "AD_SYNC_LOAD_FMT",
     0x56: "AD_GET_NILIST_PORT",
+    0x5a: "AD_UNKNOWN", # added for avoiding error on dict access in some cases
 }
 """Message Server Administration messages opcode values"""
 
@@ -232,6 +233,7 @@ ms_adm_rzl_strg_type_values = {
 
 # Message Server OpCode values
 ms_opcode_values = {
+    0: "MS_ADM_PADDED",
     1: "MS_SERVER_CHG",
     2: "MS_SERVER_ADD",
     3: "MS_SERVER_SUB",
@@ -470,8 +472,6 @@ ms_client_status_values = {
 }
 """Message Server Client status values"""
 
-# Used for parsing ADM packets
-null_key = "\x00" * 8
 
 class SAPMSAdmRecord(PacketNoPadded):
     """SAP Message Server Administration Record packet
@@ -491,7 +491,7 @@ class SAPMSAdmRecord(PacketNoPadded):
         # TODO: Add more opcodes fields
 
         # AD_PROFILE and AD_SHARED_PARAMETER fields
-        ConditionalField(StrNullFixedLenPaddedField("parameter", "", 100), lambda pkt:pkt.opcode in [0x01, 0x2e]),
+        ConditionalField(StrNullFixedLenPaddedField("parameter", "", 99), lambda pkt:pkt.opcode in [0x01, 0x2e]),
 
         # AD_RZL_STRG opcode
         ConditionalField(ByteEnumKeysField("rzl_strg_type", 1, ms_adm_rzl_strg_type_values), lambda pkt:pkt.opcode in [0x15]),
@@ -681,10 +681,11 @@ class SAPMSLogon(PacketNoPadded):
         FieldLenField("misc_length", None, length_of="misc", fmt="!H"),  # <= 100h bytes
         StrLenField("misc", "", length_from=lambda pkt:pkt.misc_length),
         FieldLenField("address6_length", 16, length_of="address6", fmt="!H"),  # == 16 bytes
-        ConditionalField(IP6Field("address6", "::"), lambda pkt:pkt.address6_length != 0xffff)
+        ConditionalField(IP6Field("address6", "::"), lambda pkt:pkt.address6_length != 0xffff),
+        ConditionalField(ShortField("end", 0xffff ), lambda pkt:pkt.address6_length != 0xffff),
     ]
 
-class SAPMSProperty(PacketNoPadded):
+class SAPMSProperty(Packet):
     """SAP Message Server Property packet.
 
     Packet containing information about properties.
@@ -696,23 +697,26 @@ class SAPMSProperty(PacketNoPadded):
 
         # MS_PROPERTY_VHOST
         ConditionalField(ShortEnumKeysField("logon", 0, ms_logon_type_values), lambda pkt:pkt.id in [0x02]),
+        ConditionalField(StrFixedLenField("pad", None, 12), lambda pkt:pkt.id in [0x02]),
+        ConditionalField(ShortField("len", 0), lambda pkt:pkt.id in [0x02]),
+        ConditionalField(StrLenField("value", "", length_from=lambda pkt: pkt.len), lambda pkt:pkt.id in [0x02]),
+        ConditionalField(ShortField("pad2", 0xffff), lambda pkt:pkt.id in [0x02]),
 
         # MS_PROPERTY_IPADR
         ConditionalField(IPField("address", "0.0.0.0"), lambda pkt:pkt.id in [0x03]),
         ConditionalField(IP6Field("address6", "::"), lambda pkt:pkt.id in [0x03]),
 
         # MS_PROPERTY_PARAM
-        ConditionalField(FieldLenField("param_len", 0x0, length_of="param", fmt="I"), lambda pkt:pkt.id in [0x04]),
+        ConditionalField(FieldLenField("param_len", 0, length_of="param", fmt="I"), lambda pkt:pkt.id in [0x04]),
         ConditionalField(StrLenField("param", "", length_from=lambda pkt: pkt.param_len), lambda pkt:pkt.id in [0x04]),
         ConditionalField(StrLenField("param_padding", "", length_from=lambda pkt: 100 - pkt.param_len), lambda pkt:pkt.id in [0x04]),
-
-        # FIXME: issue here when pkt.flag == MS_QUERY there is only 2 NULL bytes here
-        # 
-        #ConditionalField(FieldLenField("value_len", 0x0, length_of="value", fmt="I"), lambda pkt:pkt.id in [0x04]),
-        #ConditionalField(StrLenField("value", "", length_from=lambda pkt:pkt.value_len), lambda pkt:pkt.id in [0x04]),
+        ConditionalField(ShortField("pad3", 0), lambda pkt:pkt.id in [0x04]),
+        ConditionalField(FieldLenField("value_len", 0x0, length_of="value", fmt="H"), lambda pkt:pkt.id in [0x04]),
+        ConditionalField(StrLenField("value", "", length_from=lambda pkt:pkt.value_len), lambda pkt:pkt.id in [0x04]),
 
         # MS_PROPERTY_SERVICE
         ConditionalField(ShortField("service", 0), lambda pkt:pkt.id in [0x05]),
+        ConditionalField(ByteField("value", 0), lambda pkt:pkt.id in [0x05]),
 
         # Release Information fields
         ConditionalField(StrNullFixedLenField("release", "720", length=9), lambda pkt:pkt.id in [0x07]),
@@ -791,9 +795,6 @@ class SAPMS(Packet):
     This packet is used for the Message Server protocol.
     """
 
-    # -- gelim
-    adm_padding_default = '\x00' * 505
-
     name = "SAP Message Server"
     fields_desc = [
         StrFixedLenField("eyecatcher", "**MESSAGE**\x00", 12),
@@ -804,28 +805,28 @@ class SAPMS(Packet):
         ByteField("reserved", 0x00),
         ByteEnumKeysField("domain", 0x00, ms_domain_values),
         ByteField("reserved", 0x00),
-        StrFixedLenField("key", null_key, 8),
+        StrFixedLenField("key", "\x00" * 8, 8),
         ByteEnumKeysField("flag", 0x01, ms_flag_values),
         ByteEnumKeysField("iflag", 0x01, ms_iflag_values),
         StrFixedLenField("fromname", "-" + " " * 39, 40),
-        ShortField("padd", 0x0000),
-        
+        ConditionalField(ShortField("diag_port", 3200), lambda pkt:pkt.iflag == 0x08 and pkt.flag == 0x02), # for MS_REQUEST+MS_LOGIN_2 it's the diag port
+        ConditionalField(ShortField("padd", 0x0000), lambda pkt:pkt.iflag != 0x08 or pkt.flag != 0x02),
+
         # OpCode fields
-        ConditionalField(ByteEnumKeysField("opcode", 0x00, ms_opcode_values), lambda pkt:pkt.iflag in [0x00, 0x01, 0x02, 0x07]),
+        ConditionalField(ByteEnumKeysField("opcode", 0x01, ms_opcode_values), lambda pkt:pkt.iflag in [0x00, 0x01, 0x02, 0x07]), # extending all those fields with MS_SEND_TYPE and MS_SEND_TYPE_ONCE packets
         ConditionalField(ByteEnumKeysField("opcode_error", 0x00, ms_opcode_error_values), lambda pkt:pkt.iflag in [0x00, 0x01, 0x02, 0x7]),
         ConditionalField(ByteField("opcode_version", 0x01), lambda pkt:pkt.iflag in [0x00, 0x01, 0x02, 0x07]),
         ConditionalField(ByteField("opcode_charset", 0x03), lambda pkt:pkt.iflag in [0x00, 0x01, 0x02, 0x07]),
         ConditionalField(ByteField("opcode_value", 0), lambda pkt:pkt.iflag in [0x00, 0x01, 0x02, 0x07] and pkt.opcode not in [0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x11, 0x1c, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2f, 0x43, 0x44, 0x45, 0x46, 0x47, 0x4a]),
-        ConditionalField(StrField("opcode_value_trailer", ""), lambda pkt:pkt.iflag in [0x00, 0x01] and pkt.opcode not in [0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x11, 0x1c, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2f, 0x43, 0x44, 0x45, 0x46, 0x47, 0x4a] and not pkt.opcode_value == 0xd),
+        ConditionalField(StrField("opcode_trailer", ""), lambda pkt:pkt.iflag in [0x00, 0x01] and pkt.opcode not in [0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x11, 0x1c, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2f, 0x43, 0x44, 0x45, 0x46, 0x47, 0x4a] and not pkt.opcode == 0x0), # padding_marker == 0xd),
         # Adm OpCode fields
-        # FIX HERE -- gelim
-        ConditionalField(StrFixedLenField("adm_padding", '\x00'*(512-5), 512-5), lambda pkt: pkt.opcode_value == 0x0d),
-        ConditionalField(StrFixedLenField("adm_eyecatcher", "AD-EYECATCH\x00", 12), lambda pkt: pkt.iflag == 0x05 or pkt.opcode_value == 0x0d),
-        ConditionalField(ByteField("adm_version", 0x01), lambda pkt:pkt.iflag in [0x05, 0x07] or pkt.opcode_value == 0x0d),
-        ConditionalField(ByteEnumKeysField("adm_type", 0x01, ms_adm_type_values), lambda pkt:pkt.iflag in [0x05, 0x07] or pkt.opcode_value == 0x0d),
-        ConditionalField(IntToStrField("adm_recsize", 104, 11), lambda pkt:pkt.iflag in [0x05, 0x07] or pkt.opcode_value == 0x0d),
-        ConditionalField(IntToStrField("adm_recno", 1, 11), lambda pkt:pkt.iflag in [0x05, 0x07] or pkt.opcode_value == 0x0d),
-        ConditionalField(PacketListField("adm_records", None, SAPMSAdmRecord), lambda pkt:pkt.iflag in [0x05, 0x07] or pkt.opcode_value == 0x0d),
+        ConditionalField(StrFixedLenField("adm_padding", '\x00'*(512-5), 512-5), lambda pkt: pkt.opcode == 0x0),
+        ConditionalField(StrFixedLenField("adm_eyecatcher", "AD-EYECATCH\x00", 12), lambda pkt: pkt.iflag == 0x05 or pkt.opcode == 0x0),
+        ConditionalField(ByteField("adm_version", 0x01), lambda pkt:pkt.iflag in [0x05, 0x07] or pkt.opcode == 0x0),
+        ConditionalField(ByteEnumKeysField("adm_type", 0x01, ms_adm_type_values), lambda pkt:pkt.iflag in [0x05, 0x07] or pkt.opcode == 0x0),
+        ConditionalField(IntToStrField("adm_recsize", 104, 11), lambda pkt:pkt.iflag in [0x05, 0x07] or pkt.opcode == 0x0),
+        ConditionalField(IntToStrField("adm_recno", 1, 11), lambda pkt:pkt.iflag in [0x05, 0x07] or pkt.opcode == 0x0),
+        ConditionalField(PacketListField("adm_records", None, SAPMSAdmRecord), lambda pkt:pkt.iflag in [0x05, 0x07] or pkt.opcode == 0x0),
 
         # Server List fields
         ConditionalField(PacketListField("clients", None, SAPMSClient1), lambda pkt:pkt.opcode in [0x02, 0x03, 0x04, 0x05] and pkt.opcode_version == 0x01),
@@ -874,7 +875,7 @@ class SAPMS(Packet):
 
         # File Reload fields
         ConditionalField(ByteEnumKeysField("file_reload", 0, ms_file_reload_values), lambda pkt:pkt.opcode == 0x1f),
-        ConditionalField(StrFixedLenField("file_filler", "\x00\x00", 2), lambda pkt:pkt.opcode == 0x1f),
+        ConditionalField(StrFixedLenField("file_padding", "\x00\x00", 2), lambda pkt:pkt.opcode == 0x1f),
 
         # Get/Set/Del Logon fields
         ConditionalField(PacketField("logon", None, SAPMSLogon), lambda pkt:pkt.opcode in [0x2b, 0x2c, 0x2d]),
