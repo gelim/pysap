@@ -486,7 +486,9 @@ class SAPMSAdmRecord(PacketNoPadded):
         ByteField("serial_number", 0x00),
         ByteField("executed", 0x00),
         ByteField("errorno", 0x00),  # TODO: Look for error names
-        ConditionalField(StrFixedLenField("record", None, 100), lambda pkt:pkt.opcode not in [0x01, 0x15, 0x2e]),
+        ConditionalField(StrFixedLenField("record", None, 75), lambda pkt:pkt.opcode not in [0x01, 0x15, 0x2e] and pkt.executed == 0x01),
+        ConditionalField(StrFixedLenField("record_pad", None, 25), lambda pkt:pkt.opcode not in [0x01, 0x15, 0x2e] and pkt.executed == 0x01),
+        ConditionalField(StrFixedLenField("record", None, 100), lambda pkt:pkt.opcode not in [0x01, 0x15, 0x2e] and pkt.executed == 0x00),
 
         # TODO: Add more opcodes fields
 
