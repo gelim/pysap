@@ -491,7 +491,7 @@ class SAPMSAdmRecord(PacketNoPadded):
         # TODO: Add more opcodes fields
 
         # AD_PROFILE and AD_SHARED_PARAMETER fields
-        ConditionalField(StrNullFixedLenPaddedField("parameter", "", 99), lambda pkt:pkt.opcode in [0x01, 0x2e]),
+        ConditionalField(StrNullFixedLenPaddedField("parameter", "", 100), lambda pkt:pkt.opcode in [0x01, 0x2e]),
 
         # AD_RZL_STRG opcode
         ConditionalField(ByteEnumKeysField("rzl_strg_type", 1, ms_adm_rzl_strg_type_values), lambda pkt:pkt.opcode in [0x15]),
