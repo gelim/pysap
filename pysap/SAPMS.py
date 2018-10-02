@@ -853,7 +853,7 @@ class SAPDPInfo1(Packet):
     """SAP Dispatcher Info packet
 
     This packet is encapsulated inside SAPMS packet
-    and before the MS ADM payload
+    and before the MS ADM payload. Kernel 745
     """
 
     name = "SAP Dispatcher Info V1"
@@ -940,25 +940,30 @@ class SAPDPInfo2(Packet):
     """SAP Dispatcher Info packet
 
     This packet is encapsulated inside SAPMS packet
-    and before the MS ADM payload
+    and before the MS ADM payload. Kernel 720.
     """
 
-    name = "SAP Dispatcher Info V2"
+    name = "SAP Dispatcher Info v2"
     fields_desc= [
         ByteEnumKeysField("dp_req_prio", 0x1, dp_prio_values),
-        XByteField("dp_blob_00", 0x0),
-        XByteField("dp_blob_01", 0x0),
-        XByteField("dp_blob_02", 0x0),
+        XByteField("dp_blob_00", 0x2),
+        XByteField("dp_blob_01", 0x80),
+        XByteField("dp_blob_02", 0x21),
         ShortField("dp_blob_03", 0x0),
-        ShortField("dp_blob_04", 0x0),
-        StrFixedLenField("dp_blob_05", "", 4),
-        StrFixedLenField("dp_blob_06", "", 4),
-        StrFixedLenField("dp_blob_07", "", 4),
-        StrFixedLenField("dp_blob_08", "", 4),
-        StrFixedLenField("dp_blob_09", "", 4),
-        StrFixedLenField("dp_blob_10", "", 2),
-        StrFixedLenField("dp_blob_11", "", 2),
-        StrFixedLenField("dp_blob_12", "", 4),
+        ShortField("dp_blob_04", 0xffff),
+        StrFixedLenField("dp_blob_05", "\xff\xff\xff\xff\xff", 5),
+
+        ByteField("dp_addr_from_t", 0x0),
+
+        StrFixedLenField("dp_blob_06", "\xff\xff", 2),
+        StrFixedLenField("dp_blob_07", "\xff\xff\xff\xff", 4),
+        StrFixedLenField("dp_blob_08", "\xff\xff\xff\xff", 4),
+        StrFixedLenField("dp_blob_09", "\xff\xcc", 2),
+        StrFixedLenField("dp_blob_10", "\x01\x00", 2),
+        ByteField("dp_addr_from_m", 0x0),
+        ByteField("dp_addr_from_u", 0x0),
+        StrFixedLenField("dp_blob_11", "\xff\xff", 2),
+        StrFixedLenField("dp_blob_12", "\xff\xff\xff\xff", 4),
         StrFixedLenField("dp_blob_13", "", 86),
         StrFixedLenField("dp_blob_14", "", 5),
 
@@ -971,10 +976,92 @@ class SAPDPInfo2(Packet):
         ByteField("dp_blob_16", 0x0),
         ShortField("dp_respid_to", 0x0),
         
-        StrFixedLenField("dp_blob_17", "", 4),
-        StrFixedLenField("dp_blob_18", "", 8),
-        StrFixedLenField("dp_blob_19", "", 12),
-        Field("dp_blob_20", 0x0, '<L'),
+        StrFixedLenField("dp_blob_17", "\xff\xff\xff\xff", 4),
+        StrFixedLenField("dp_blob_18", "\x00\x00\x00\x00", 4),
+        Field("dp_blob_19", 0x1, '<L'),
+        StrFixedLenField("dp_blob_20", "", 12),
+        Field("dp_blob_21", 0x0, '<L'),
+    ]
+
+class SAPDPInfo3(Packet):
+    """SAP Dispatcher Info packet
+
+    This packet is encapsulated inside SAPMS packet
+    and before the MS ADM payload. Kernel 749.
+    """
+
+    name = "SAP Dispatcher Info v3"
+    fields_desc= [
+        IntField("dp_padd1", 185),
+
+        ByteEnumKeysField("dp_req_prio", 0x1, dp_prio_values),
+        ShortField("dp_padd2", 0x0),
+        ByteField("dp_padd3", 0x0),
+
+        ByteField("dp_padd4", 0x0),
+        IntField("dp_req_len", 0x0),
+        ShortField("dp_padd5", 0x0),
+        ByteField("dp_padd6", 0x0),
+        ByteEnumKeysField("dp_type_from", 0x2, dp_type_values),
+        StrFixedLenField("dp_fromname", " "*40, 40),
+        ShortField("dp_padd7", 0x0),
+        ByteField("dp_padd8", 0x0),
+        ByteEnumKeysField("dp_agent_type_from", 0x6, dp_agent_type_values),
+        ShortField("dp_padd9", 0x0),
+        ByteField("dp_padd10", 0x0),
+
+
+        ByteField("dp_padd12", 0xff),
+        ShortField("dp_padd13", 0x0),
+        ByteEnumKeysField("dp_worker_type_from", 0x1, dp_worker_type_values),
+
+        ShortField("dp_worker_from_num", 0x0),
+        ShortField("dp_padd111", 0x0000),
+        ByteField("dp_padd11", 0x00),
+
+        ByteField("dp_addr_from_t", 0x0),
+        ShortField("dp_padd14", 0x0),
+        ShortField("dp_addr_from_u", 0x0),
+        ByteField("dp_addr_from_m", 0x0),
+        ByteField("dp_padd15", 0x1),
+        IntField("dp_respid_from", 0x0),
+
+        ShortField("dp_padd16", 0x0),
+        ByteField("dp_padd17", 0x0),
+        ByteEnumKeysField("dp_type_to", 0x2, dp_type_values),
+        StrFixedLenField("dp_toname", " "*40, 40),
+
+        ShortField("dp_padd18", 0x0),
+        ByteField("dp_padd19", 0x0),
+        ByteEnumKeysField("dp_agent_type_to", 0x6, dp_agent_type_values),
+
+        ShortField("dp_padd20", 0x0),
+        ByteField("dp_padd21", 0x0),
+
+        ByteEnumKeysField("dp_worker_type_to", 0x1, dp_worker_type_values),
+        ShortField("dp_padd22", 0x0),
+        ShortField("dp_worker_to_num", 0x0),
+
+        IntField("dp_padd23", 0x0),
+
+        ByteField("dp_addr_to_t", 0x0),
+        ShortField("dp_padd24", 0x0),
+        ShortField("dp_addr_to_u", 0x0),
+        ByteField("dp_addr_from_m", 0x0),
+        ByteField("dp_padd25", 0x1),
+
+        IntField("dp_respid_to", 0x0),
+        ShortField("dp_padd26", 0x0),
+        ByteField("dp_padd27", 0x0),
+
+        ByteEnumKeysField("dp_req_handler", 40, dp_req_handler_values),
+        StrFixedLenField("dp_padd28", "\xff\xff\xff\xff", 4),
+
+        IntField("dp_padd29", 0x0),
+        IntField("dp_padd30", 0x0),
+        IntField("dp_padd31", 0x0),
+
+        StrFixedLenField("dp_padd32", "\x00"*5, 5),
     ]
 
 class SAPMS(Packet):
@@ -1012,7 +1099,10 @@ class SAPMS(Packet):
         # Dispatcher info
         ConditionalField(ByteField("dp_version", 0x0), lambda pkt:pkt.opcode == 0x0 or (pkt.opcode_version == 0x00 and pkt.opcode_charset == 0x00)),
         ConditionalField(PacketLenField("dp_info1", SAPDPInfo1(), SAPDPInfo1, length_from=lambda x: 507), lambda pkt:(pkt.opcode == 0x0 or (pkt.opcode_version == 0x00 and pkt.opcode_charset == 0x00)) and pkt.dp_version == 0x0d), # 745 kernel
+
         ConditionalField(PacketLenField("dp_info2", SAPDPInfo2(), SAPDPInfo2, length_from=lambda x: 203), lambda pkt:(pkt.opcode == 0x0 or (pkt.opcode_version == 0x00 and pkt.opcode_charset == 0x00)) and pkt.dp_version == 0x0b), # 720 kernel
+
+        ConditionalField(PacketLenField("dp_info3", SAPDPInfo3(), SAPDPInfo3, length_from=lambda x: 179), lambda pkt:(pkt.opcode == 0x0 or (pkt.opcode_version == 0x00 and pkt.opcode_charset == 0x00)) and pkt.dp_version == 0x0e), # 749 kernel
 
         # MS ADM layer
         ConditionalField(StrFixedLenField("adm_eyecatcher", "AD-EYECATCH\x00", 12), lambda pkt: pkt.iflag in [0x00, 0x02, 0x05, 0x07] or pkt.opcode == 0x0),
