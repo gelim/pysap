@@ -21,13 +21,14 @@
 from scapy.layers.inet import TCP
 from scapy.packet import Packet, bind_layers
 from scapy.fields import (ByteField, ConditionalField, IPField, IntField,
-                          StrFixedLenField, SignedShortField,
-                          ByteEnumKeysField)
+                          StrFixedLenField, SignedShortField, ShortField,
+                          ByteEnumKeysField, IntEnumKeysField, SignedIntField,
+                          FieldLenField, StrLenField)
 # External imports
 from scapy.layers.inet6 import IP6Field
 # Custom imports
 from pysap.SAPNI import SAPNI
-from pysap.utils.fields import StrFixedLenPaddedField
+from pysap.utils.fields import StrFixedLenPaddedField, IntToStrField
 
 
 # RFC Request Type values
@@ -49,8 +50,44 @@ rfc_req_type_values = {
     0x0e: "GW_GET_NO_REGISTER_TP",
     0x0f: "GW_SAP_WP_CLIENT",  # Requires NiLocalCheck
     0x10: "GW_CANCEL_REGISTER_TP",
-    0x11: "REMOTE_GATEWAY",
+    0x11: "GW_FROM_REMOTE_GATEWAY",
     0x12: "GW_CONTAINER_RECEIVED",
+}
+
+rfc_func_type_values = {
+    0: "F_NO_REQUEST",
+    1: "F_INITIALIZE_CONVERSATION",
+    3: "F_ACCEPT_CONVERSATION",
+    5: "F_ALLOCATE",
+    7: "F_SEND_DATA",
+    8: "F_ASEND_DATA",
+    9: "F_RECEIVE",
+    10: "F_ARECEIVE",
+    11: "F_DEALLOCATE",
+    13: "F_SET_TP_NAME",
+    15: "F_SET_PARTNER_LU_NAME",
+    17: "F_SET_SECURITY_PASSWORD",
+    19: "F_SET_SECURITY_USER_ID",
+    21: "F_SET_SECURITY_TYPE",
+    23: "F_SET_CONVERSATION_TYPE",
+    25: "F_EXTRACT_TP_NAME",
+    27: "F_FLUSH",
+    0xc9: "F_SAP_ALLOCATE",
+    0xca: "F_SAP_INIT",
+    0xcb: "F_SAP_SEND",
+    0xcc: "F_ASAP_SEND",
+    0xcd: "F_SAP_SYNC",
+    0xce: "F_SAP_PING",
+    0xcf: "F_SAP_REGTP",
+    0xd0: "F_SAP_UNREGTP",
+    0xd1: "F_SAP_ACCPTP",
+    0xd2: "F_SAP_UNACCPTP",
+    0xd3: "F_SAP_CANCTP",
+    0xd4: "F_SAP_SET_UID",
+    0xd5: "F_SAP_CANCEL",
+    0xd6: "F_SAP_CANCELED",
+    0xd7: "F_SAP_STOP_STREAMING",
+    0xd8: "F_SAP_CONT_STREAMING",
 }
 """RFC Request Type values"""
 
@@ -108,6 +145,104 @@ rfc_monitor_cmd_values = {
 }
 """RFC Monitor Command values"""
 
+rfc_monitor_cmd_values_v7200 = {
+    0x01: "NOOP",
+    0x02: "DELETE_CONN",
+    0x03: "CANCEL_CONN",
+    0x04: "RST_SINGLE_ERR_CNT",
+    0x05: "RST_ALL_ERR_CNT",
+    0x06: "INCREASE_TRACE",
+    0x07: "DECREASE_TRACE",
+    0x08: "READ_SEC_INFO",
+    0x09: "REFRESH_SEC_INFO",
+    0x0a: "READ_GWSYS_TBL",
+    0x0b: "READ_CONN_TBL",
+    0x0c: "READ_PROC_TBL",
+    0x0d: "READ_CONN_ATTR",
+    0x0e: "READ_MEMORY",
+    0x0f: "READ_REQ_BLK",
+    0x10: "ACT_STATISTIC",
+    0x11: "DEACT_STATISTIC",
+    0x12: "READ_STATISTIC",
+    0x13: "RESET_STATISTIC",
+    0x14: "READ_PARAMETER",
+    0x15: "SET_GWHOST",
+    0x16: "READ_RD_FILE",
+    0x17: "READ_WP_FILE",
+    0x18: "GET_GWHOST",
+    0x19: "DUMP_NIBUFFER",
+    0x1A: "RESET_NIBUFFER",
+    0x1B: "ACT_EXTPGM_TRACE",
+    0x1C: "DEACT_EXTPGM_TRACE",
+    0x1D: "ACT_CONN_TRACE",
+    0x1E: "DEACT_CONN_TRACE",
+    0x1F: "RESET_TRACE",
+    0x20: "SUICIDE",
+    0x21: "READ_SEC_INFO2",
+    0x22: "CANCEL_REG_TP",
+    0x23: "DUMP",
+    0x24: "READ_GWSYS_TBL2",
+    0x25: "CHANGE_PARAMETER",
+    0x26: "GET_CONN_PARTNER",
+    0x27: "DELETE_CLIENT",
+    0x28: "DELETE_REMGW",
+    0x29: "DISCONNECT",
+    0x2A: "ENABLE_RESTART",
+    0x2B: "DISABLE_RESTART",
+    0x2C: "NI_TRACE",
+    0x2D: "GET_CLI_INFO",
+    0x2E: "GET_GW_INFO",
+    0x2F: "CONVID_INFO",
+    0x30: "GET_NO_REG_TP",
+    0x31: "GET_CV_INFO",
+    0x32: "SO_KEEPALIVE",
+    0x33: "READ_GWSYS_TBL2",
+    0x34: "READ_GWSYS_TBL3",
+    0x35: "RELOAD_ACL",
+    0x3E8: "SET_NI_TIMEOUT",
+    0x3E9: "GET_NI_TIMEOUT",
+    0x3EA: "SET_NICO_TIMEOUT",
+    0x3EB: "GET_NICO_TIMEOUT",
+    0x3EC: "GET_ADM",
+    0x3ED: "GET_PROFILE_VALUE",
+    0x3EE: "FLUSH_LOGFILE",
+    0x3EF: "SET_TRUSTED_IPADR",
+    0x3F0: "SET_TRUSTED_IPADR",
+}
+"""RFC Monitor Command values from kernel 7200"""    
+
+appc_protocol_values = {
+    0x3: "CPIC",
+}
+
+appc_rc_values = {
+    0x0: "CM_OK",
+    0x1: "CM_ALLOCATE_FAILURE_NO_RETRY",
+    0x2: "CM_ALLOCATE_FAILURE_RETRY",
+    0x3: "CM_CONVERSATION_TYPE_MISMATCH",
+    0x6: "CM_SECURITY_NOT_VALID",
+    0x8: "CM_SYNC_LVL_NOT_SUPPORTED_PGM",
+    0x9: "CM_TPN_NOT_RECOGNIZED",
+    0xa: "CM_TP_NOT_AVAILABLE_NO_RETRY",
+    0xb: "CM_TP_NOT_AVAILABLE_RETRY",
+    0x11: "CM_DEALLOCATED_ABEND",
+    0x12: "CM_DEALLOCATED_NORMAL",
+    0x13: "",
+    0x15: "CM_PROGRAM_ERROR_NO_TRUNC",
+    0x17: "CM_PROGRAM_ERROR_TRUNC",
+    0x18: "CM_PROGRAM_PARAMETER_CHECK",
+    0x19: "CM_PROGRAM_STATE_CHECK",
+    0x14: "CM_PRODUCT_SPECIFIC_ERROR",
+    0x1a: "CM_RESOURCE_FAILURE_NO_RETRY",
+    0x1b: "CM_RESOURCE_FAILURE_RERTY",
+    0x1c: "CM_UNSUCCESSFUL",
+    0x24: "CM_SYSTEM_EVENT",
+    0x2711: "CM_SAP_TIMEOUT_RETRY",
+    0x2712: "CM_CANCEL_REQUEST",
+}
+
+sap_rc_values = {
+}
 
 # APPC Header versions length:
 # 1: 4Ch
@@ -124,7 +259,8 @@ class SAPRFC(Packet):
     name = "SAP Remote Function Call"
     fields_desc = [
         ByteField("version", 3),  # If the version is 3, the packet has a size > 88h, versions 1 and 2 are 40h
-        ByteEnumKeysField("req_type", 0, rfc_req_type_values),
+        ConditionalField(ByteEnumKeysField("req_type", 0, rfc_req_type_values), lambda pkt:pkt.version != 0x06),
+        ConditionalField(ByteEnumKeysField("func_type", 0, rfc_func_type_values), lambda pkt:pkt.version == 0x06),
 
         # Normal client fields (GW_NORMAL_CLIENT)
         ConditionalField(IPField("address", "0.0.0.0"), lambda pkt:pkt.req_type == 0x03),
@@ -152,6 +288,31 @@ class SAPRFC(Packet):
         ConditionalField(StrFixedLenField("padd_v12", "\x00" * 62, length=62), lambda pkt: pkt.version < 3 and pkt.req_type not in [0x03, 0x09]),
         ConditionalField(StrFixedLenField("padd_v3", "\x00" * 133, length=133), lambda pkt: pkt.version == 3 and pkt.req_type == 0x09),
         ConditionalField(StrFixedLenField("padd_v3", "\x00" * 134, length=134), lambda pkt: pkt.version == 3 and pkt.req_type not in [0x03, 0x09]),
+
+        # APPC layer POC for remote function call
+        ConditionalField(ByteEnumKeysField("protocol", 0x3, appc_protocol_values), lambda pkt:pkt.version == 0x6),
+        ConditionalField(ByteField("mode", 0x0), lambda pkt:pkt.version == 0x6),
+        ConditionalField(ShortField("uid", 0x13), lambda pkt:pkt.version == 0x6),
+        ConditionalField(ShortField("gw_id", 0x0), lambda pkt:pkt.version == 0x6),
+        ConditionalField(ShortField("err_len", 0x0), lambda pkt:pkt.version == 0x6),
+        ConditionalField(ByteField("info2", 0x1), lambda pkt:pkt.version == 0x6), # bitfield
+        ConditionalField(ByteField("trace_level", 0x1), lambda pkt:pkt.version == 0x6),
+        ConditionalField(IntField("time", 0x0), lambda pkt:pkt.version == 0x6),
+        ConditionalField(ByteField("info3", 0x0), lambda pkt:pkt.version == 0x6), # bitfield
+        ConditionalField(SignedIntField("timeout", -1), lambda pkt:pkt.version == 0x6),
+        ConditionalField(ByteField("info4", 0x0), lambda pkt:pkt.version == 0x6), # bitfield
+        ConditionalField(IntField("seq_no", 0x0), lambda pkt:pkt.version == 0x6),
+        ConditionalField(FieldLenField("sap_param_len", None, length_of="sap_param", fmt="!H"), lambda pkt:pkt.version == 0x6),
+        ConditionalField(ByteField("info", 0x0), lambda pkt:pkt.version == 0x6), # bitfield
+        ConditionalField(ShortField("padd_appc", 0x0), lambda pkt:pkt.version == 0x6), # bitfield
+        ConditionalField(ByteField("req_type2", 0x0), lambda pkt:pkt.version == 0x6), # bitfield
+        ConditionalField(IntEnumKeysField("appc_rc", 0x0, appc_rc_values), lambda pkt:pkt.version == 0x6),
+        ConditionalField(IntEnumKeysField("sap_rc", 0x0, sap_rc_values), lambda pkt:pkt.version == 0x6),
+        ConditionalField(IntToStrField("conv_id", 0, 8), lambda pkt:pkt.version == 0x6),
+        ConditionalField(StrFixedLenField("ncpic_parameters", 0, 28), lambda pkt:pkt.version == 0x6),
+        ConditionalField(ShortField("comm_idx", 0x0), lambda pkt:pkt.version == 0x6),
+        ConditionalField(ShortField("conn_idx", 0x0), lambda pkt:pkt.version == 0x6),
+        ConditionalField(StrLenField("sap_param", "", length_from=lambda pkt:pkt.sap_param_len), lambda pkt:pkt.version == 0x6),
     ]
 
 

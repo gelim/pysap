@@ -18,12 +18,13 @@
 # ==============
 
 # External imports
-from scapy.layers.inet import TCP
+from scapy.layers.inet import TCP, Raw
 from scapy.packet import Packet, bind_layers
 from scapy.fields import (ByteField, ConditionalField, StrFixedLenField, FlagsField,
                           IPField, ShortField, IntField, StrField, PacketListField,
                           FieldLenField, PacketField, StrLenField, IntEnumField,
-                          StrNullField, ByteEnumKeysField, ShortEnumKeysField)
+                          StrNullField, ByteEnumKeysField, ShortEnumKeysField,
+                          Field, PacketLenField, XByteField)
 from scapy.layers.inet6 import IP6Field
 # Custom imports
 from pysap.SAPNI import SAPNI
@@ -233,7 +234,7 @@ ms_adm_rzl_strg_type_values = {
 
 # Message Server OpCode values
 ms_opcode_values = {
-    0: "MS_ADM_PADDED",
+    0: "MS_DP_ADM",
     1: "MS_SERVER_CHG",
     2: "MS_SERVER_ADD",
     3: "MS_SERVER_SUB",
@@ -472,6 +473,65 @@ ms_client_status_values = {
 }
 """Message Server Client status values"""
 
+dp_prio_values = {
+    0: "LOW",
+    1: "MEDIUM",
+    2: "HIGH",
+}
+
+dp_type_values = {
+    0: "INVALID",
+    1: "LOCAL",
+    2: "BY_NAME",
+    3: "BY_TYPE",
+    4: "MSG_SRV",
+}
+
+dp_agent_type_values = {
+    0: "INVALID",
+    1: "DISP",
+    2: "GATEWAY",
+    3: "ICMAN",
+    4: "TERMINAL",
+    5: "MSG",
+    6: "WORKER",
+    7: "EXT-EVT",
+    8: "STARTSRV",
+    9: "DPMON",
+    10: "ICMON",
+}
+
+dp_worker_type_values = {
+    0: "NOWP",
+    1: "DIA",
+    2: "UPD",
+    3: "ENQ",
+    4: "BTC",
+    5: "SPO",
+    6: "UP2",
+}
+
+dp_req_handler_values = {
+    2: "REQ_HANDLER_GUI",
+    8: "REQ_HANDLER_UPDATE",
+    10: "REQ_HANDLER_UPDATE2",
+    12: "REQ_HANDLER_UPDATE_ADMIN",
+    13: "REQ_HANDLER_UPDATE_ADMIN_RESP",
+    38: "REQ_HANDLER_RPC",
+    40: "REQ_HANDLER_ADM",
+    41: "REQ_HANDLER_ADM_RESP",
+    42: "REQ_HANDLER_MSG_SERVER",
+    43: "REQ_HANDLER_MSG_SERVER_RESP",
+    44: "REQ_HANDLER_BTC",
+    80: "REQ_HANDLER_SHUTDOWN",
+    84: "REQ_HANDLER_PROCESS",
+    86: "REQ_HANDLER_REGISTER_PROCESS",
+    111: "REQ_HANDLER_AUTOJAVA_RESP",
+    112: "REQ_HANDLER_VMC_RUNTIME",
+    124: "REQ_HANDLER_SERVER_STARTUP",
+    130: "REQ_HANDLER_SUSPEND_SERVER",
+    132: "REQ_HANDLER_RESUME_SERVER",
+}
 
 class SAPMSAdmRecord(PacketNoPadded):
     """SAP Message Server Administration Record packet
@@ -493,7 +553,7 @@ class SAPMSAdmRecord(PacketNoPadded):
         # TODO: Add more opcodes fields
 
         # AD_PROFILE and AD_SHARED_PARAMETER fields
-        ConditionalField(StrNullFixedLenPaddedField("parameter", "", 99), lambda pkt:pkt.opcode in [0x01, 0x2e]),
+        ConditionalField(StrNullFixedLenPaddedField("parameter", "", 100), lambda pkt:pkt.opcode in [0x01, 0x2e]),
 
         # AD_RZL_STRG opcode
         ConditionalField(ByteEnumKeysField("rzl_strg_type", 1, ms_adm_rzl_strg_type_values), lambda pkt:pkt.opcode in [0x15]),
@@ -501,12 +561,12 @@ class SAPMSAdmRecord(PacketNoPadded):
         ConditionalField(ByteField("rzl_strg_value_offset", 0), lambda pkt:pkt.opcode in [0x15]),
         ConditionalField(ByteField("rzl_strg_value_length", 0), lambda pkt:pkt.opcode in [0x15]),
         ConditionalField(StrFixedLenField("rzl_strg_name", None, 20), lambda pkt:pkt.opcode in [0x15]),
-        ConditionalField(IntField("rzl_strg_integer0", 0), lambda pkt:pkt.opcode in [0x15] and pkt.rzl_strg_type in [11, 15, 21, 31, 41, 51]),
+        ConditionalField(IntField("rzl_strg_uptime", 0), lambda pkt:pkt.opcode in [0x15] and pkt.rzl_strg_type in [11, 15, 21, 31, 41, 51]),
         ConditionalField(IntField("rzl_strg_integer1", 0), lambda pkt:pkt.opcode in [0x15] and pkt.rzl_strg_type in [11, 15, 21, 31, 41, 51]),
-        ConditionalField(IntField("rzl_strg_integer2", 0), lambda pkt:pkt.opcode in [0x15] and pkt.rzl_strg_type in [11, 15, 21, 31, 41, 51]),
+        ConditionalField(IntField("rzl_strg_delay", 0), lambda pkt:pkt.opcode in [0x15] and pkt.rzl_strg_type in [11, 15, 21, 31, 41, 51]),
         ConditionalField(IntField("rzl_strg_integer3", 0), lambda pkt:pkt.opcode in [0x15] and pkt.rzl_strg_type in [11, 15, 21, 31, 41, 51]),
-        ConditionalField(IntField("rzl_strg_integer4", 0), lambda pkt:pkt.opcode in [0x15] and pkt.rzl_strg_type in [11, 15, 21, 31, 41, 51]),
-        ConditionalField(IntField("rzl_strg_integer5", 0), lambda pkt:pkt.opcode in [0x15] and pkt.rzl_strg_type in [11, 15, 21, 31, 41, 51]),
+        ConditionalField(IntField("rzl_strg_users", 0), lambda pkt:pkt.opcode in [0x15] and pkt.rzl_strg_type in [11, 15, 21, 31, 41, 51]),
+        ConditionalField(IntField("rzl_strg_quality", 0), lambda pkt:pkt.opcode in [0x15] and pkt.rzl_strg_type in [11, 15, 21, 31, 41, 51]),
         ConditionalField(IntField("rzl_strg_integer6", 0), lambda pkt:pkt.opcode in [0x15] and pkt.rzl_strg_type in [11, 15, 21, 31, 41, 51]),
         ConditionalField(IntField("rzl_strg_integer7", 0), lambda pkt:pkt.opcode in [0x15] and pkt.rzl_strg_type in [11, 15, 21, 31, 41, 51]),
         ConditionalField(IntField("rzl_strg_integer8", 0), lambda pkt:pkt.opcode in [0x15] and pkt.rzl_strg_type in [11, 15, 21, 31, 41, 51]),
@@ -791,6 +851,221 @@ class SAPMSJ2EEService(PacketNoPadded):
     ]
 
 
+class SAPDPInfo1(Packet):
+    """SAP Dispatcher Info packet
+
+    This packet is encapsulated inside SAPMS packet
+    and before the MS ADM payload. Kernel 745
+    """
+
+    name = "SAP Dispatcher Info V1"
+    fields_desc= [
+        ByteEnumKeysField("dp_req_prio", 0x1, dp_prio_values),
+        IntField("dp_user_trace", 0x0),
+        IntField("dp_req_len", 0x0),
+    
+        ShortField("dp_padd3", 0x0),
+        ByteField("dp_padd4", 0x0),
+        ByteEnumKeysField("dp_type_from", 0x2, dp_type_values),
+        StrFixedLenField("dp_fromname", " "*40, 40),
+        ShortField("dp_padd41", 0x0),
+        ByteField("dp_padd42", 0x0),
+        ByteEnumKeysField("dp_agent_type_from", 0x6, dp_agent_type_values),
+        ShortField("dp_padd43", 0x0),
+        ByteField("dp_padd44", 0x0),
+        ByteEnumKeysField("dp_worker_type_from", 0x1, dp_worker_type_values),
+        IntField("dp_worker_from_num", 0x0),
+        ShortField("dp_padd6", 0x0),
+        ShortField("dp_padd7", 0x0),
+
+        ByteField("dp_addr_from_t", 0xff),
+        ShortField("dp_padd8", 0x0),
+        ShortField("dp_addr_from_u", 0xffff),
+        ByteField("dp_addr_from_m", 0xff),
+        ByteField("dp_padd9", 0x1),
+        IntField("dp_respid_from", 0x0),
+
+        ShortField("dp_padd10", 0x0),
+        ByteField("dp_padd11", 0x0),
+        ByteEnumKeysField("dp_type_to", 0x2, dp_type_values),
+        StrFixedLenField("dp_toname", " "*40, 40),
+
+        ShortField("dp_padd51", 0x0),
+        ByteField("dp_padd52", 0x0),
+        ByteEnumKeysField("dp_agent_type_to", 0x6, dp_agent_type_values),
+        ShortField("dp_padd54", 0x0),
+        ByteField("dp_padd55", 0x0),
+        ByteEnumKeysField("dp_worker_type_to", 0x1, dp_worker_type_values),
+
+        IntField("dp_worker_to_num", 0x0),
+
+        ShortField("dp_padd01", 0),
+        ShortField("dp_padd02", 0),
+
+        ByteField("dp_addr_to_t", 0xff),
+        ShortField("dp_padd03", 0x1),
+        ShortField("dp_addr_to_u", 0xffff),
+        ByteField("dp_addr_to_m", 0x0),
+
+        ByteField("dp_padd21", 0x0),
+        IntField("dp_respid_to", 0),
+        ByteField("dp_padd22", 0),
+        ShortField("dp_padd23", 0),
+
+        ByteEnumKeysField("dp_req_handler", 40, dp_req_handler_values),
+        IntField("dp_req_rc", 0x0),
+
+        StrFixedLenField("dp_blob_padding", None, 224),
+        Field("dp_blob_56", 6, '<L'),
+        Field("dp_blob_57", 1, '<L'),
+        Field("dp_blob_worker_from_num", 0, '<L'),
+
+        ByteField("dp_blob_worker_type_from", 0),
+        StrFixedLenField("dp_blob_62", "", 3),
+
+        Field("dp_blob_addr_from_t", 0, '<L'),
+        Field("dp_blob_addr_from_u", 0, '<L'),
+
+        ByteField("dp_blob_worker_type_to", 0),
+        StrFixedLenField("dp_blob_63", "", 3),
+
+        Field("dp_blob_respid_from", 0, '<L'),
+
+        StrFixedLenField("dp_blob_64", "", 3),
+
+        StrFixedLenField("dp_blob_dst", "", 80),
+        ByteField("dp_blob_xx", 0),
+        StrFixedLenField("dp_blob_yy", "", 8),
+    ]
+
+class SAPDPInfo2(Packet):
+    """SAP Dispatcher Info packet
+
+    This packet is encapsulated inside SAPMS packet
+    and before the MS ADM payload. Kernel 720.
+    """
+
+    name = "SAP Dispatcher Info v2"
+    fields_desc= [
+        ByteEnumKeysField("dp_req_prio", 0x1, dp_prio_values),
+        XByteField("dp_blob_00", 0x2),
+        XByteField("dp_blob_01", 0x80),
+        XByteField("dp_blob_02", 0x21),
+        ShortField("dp_blob_03", 0x0),
+        ShortField("dp_blob_04", 0xffff),
+        StrFixedLenField("dp_blob_05", "\xff\xff\xff\xff\xff", 5),
+
+        ByteField("dp_addr_from_t", 0x0),
+
+        StrFixedLenField("dp_blob_06", "\xff\xff", 2),
+        StrFixedLenField("dp_blob_07", "\xff\xff\xff\xff", 4),
+        StrFixedLenField("dp_blob_08", "\xff\xff\xff\xff", 4),
+        StrFixedLenField("dp_blob_09", "\xff\xcc", 2),
+        StrFixedLenField("dp_blob_10", "\x01\x00", 2),
+        ByteField("dp_addr_from_m", 0x0),
+        ByteField("dp_addr_from_u", 0x0),
+        StrFixedLenField("dp_blob_11", "\xff\xff", 2),
+        StrFixedLenField("dp_blob_12", "\xff\xff\xff\xff", 4),
+        StrFixedLenField("dp_blob_13", "", 86),
+        StrFixedLenField("dp_blob_14", "", 5),
+
+        StrFixedLenField("dp_name_to", "", 40),
+
+        XByteField("dp_blob_15", 0x0),
+        ByteField("dp_addr_to_t", 0x0),
+        ShortField("dp_addr_to_u", 0x0),
+        ByteField("dp_addr_to_m", 0x0),
+        ByteField("dp_blob_16", 0x0),
+        ShortField("dp_respid_to", 0x0),
+        
+        StrFixedLenField("dp_blob_17", "\xff\xff\xff\xff", 4),
+        StrFixedLenField("dp_blob_18", "\x00\x00\x00\x00", 4),
+        Field("dp_blob_19", 0x1, '<L'),
+        StrFixedLenField("dp_blob_20", "", 12),
+        Field("dp_blob_21", 0x0, '<L'),
+    ]
+
+class SAPDPInfo3(Packet):
+    """SAP Dispatcher Info packet
+
+    This packet is encapsulated inside SAPMS packet
+    and before the MS ADM payload. Kernel 749.
+    """
+
+    name = "SAP Dispatcher Info v3"
+    fields_desc= [
+        IntField("dp_padd1", 185),
+
+        ByteEnumKeysField("dp_req_prio", 0x1, dp_prio_values),
+        ShortField("dp_padd2", 0x0),
+        ByteField("dp_padd3", 0x0),
+
+        ByteField("dp_padd4", 0x0),
+        IntField("dp_req_len", 0x0),
+        ShortField("dp_padd5", 0x0),
+        ByteField("dp_padd6", 0x0),
+        ByteEnumKeysField("dp_type_from", 0x2, dp_type_values),
+        StrFixedLenField("dp_fromname", " "*40, 40),
+        ShortField("dp_padd7", 0x0),
+        ByteField("dp_padd8", 0x0),
+        ByteEnumKeysField("dp_agent_type_from", 0x6, dp_agent_type_values),
+        ShortField("dp_padd9", 0x0),
+        ByteField("dp_padd10", 0x0),
+
+
+        ByteField("dp_padd12", 0xff),
+        ShortField("dp_padd13", 0x0),
+        ByteEnumKeysField("dp_worker_type_from", 0x1, dp_worker_type_values),
+
+        ShortField("dp_worker_from_num", 0x0),
+        ShortField("dp_padd111", 0x0000),
+        ByteField("dp_padd11", 0x00),
+
+        ByteField("dp_addr_from_t", 0x0),
+        ShortField("dp_padd14", 0x0),
+        ShortField("dp_addr_from_u", 0x0),
+        ByteField("dp_addr_from_m", 0x0),
+        ByteField("dp_padd15", 0x1),
+        IntField("dp_respid_from", 0x0),
+
+        ShortField("dp_padd16", 0x0),
+        ByteField("dp_padd17", 0x0),
+        ByteEnumKeysField("dp_type_to", 0x2, dp_type_values),
+        StrFixedLenField("dp_toname", " "*40, 40),
+
+        ShortField("dp_padd18", 0x0),
+        ByteField("dp_padd19", 0x0),
+        ByteEnumKeysField("dp_agent_type_to", 0x6, dp_agent_type_values),
+
+        ShortField("dp_padd20", 0x0),
+        ByteField("dp_padd21", 0x0),
+
+        ByteEnumKeysField("dp_worker_type_to", 0x1, dp_worker_type_values),
+        ShortField("dp_padd22", 0x0),
+        ShortField("dp_worker_to_num", 0x0),
+
+        IntField("dp_padd23", 0x0),
+
+        ByteField("dp_addr_to_t", 0x0),
+        ShortField("dp_padd24", 0x0),
+        ShortField("dp_addr_to_u", 0x0),
+        ByteField("dp_addr_from_m", 0x0),
+        ByteField("dp_padd25", 0x1),
+
+        IntField("dp_respid_to", 0x0),
+        ShortField("dp_padd26", 0x0),
+        ByteField("dp_padd27", 0x0),
+
+        ByteEnumKeysField("dp_req_handler", 40, dp_req_handler_values),
+        StrFixedLenField("dp_padd28", "\xff\xff\xff\xff", 4),
+
+        IntField("dp_padd29", 0x0),
+        IntField("dp_padd30", 0x0),
+        IntField("dp_padd31", 0x0),
+
+        StrFixedLenField("dp_padd32", "\x00"*5, 5),
+    ]
+
 class SAPMS(Packet):
     """SAP Message Server packet
 
@@ -819,16 +1094,25 @@ class SAPMS(Packet):
         ConditionalField(ByteEnumKeysField("opcode_error", 0x00, ms_opcode_error_values), lambda pkt:pkt.iflag in [0x00, 0x01, 0x02, 0x7]),
         ConditionalField(ByteField("opcode_version", 0x01), lambda pkt:pkt.iflag in [0x00, 0x01, 0x02, 0x07]),
         ConditionalField(ByteField("opcode_charset", 0x03), lambda pkt:pkt.iflag in [0x00, 0x01, 0x02, 0x07]),
-        ConditionalField(ByteField("opcode_value", 0), lambda pkt:pkt.iflag in [0x00, 0x01, 0x02, 0x07] and pkt.opcode not in [0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x11, 0x1c, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2f, 0x43, 0x44, 0x45, 0x46, 0x47, 0x4a]),
-        ConditionalField(StrField("opcode_trailer", ""), lambda pkt:pkt.iflag in [0x00, 0x01] and pkt.opcode not in [0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x11, 0x1c, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2f, 0x43, 0x44, 0x45, 0x46, 0x47, 0x4a] and not pkt.opcode == 0x0), # padding_marker == 0xd),
-        # Adm OpCode fields
-        ConditionalField(StrFixedLenField("adm_padding", '\x00'*(512-5), 512-5), lambda pkt: pkt.opcode == 0x0),
-        ConditionalField(StrFixedLenField("adm_eyecatcher", "AD-EYECATCH\x00", 12), lambda pkt: pkt.iflag == 0x05 or pkt.opcode == 0x0),
-        ConditionalField(ByteField("adm_version", 0x01), lambda pkt:pkt.iflag in [0x05, 0x07] or pkt.opcode == 0x0),
-        ConditionalField(ByteEnumKeysField("adm_type", 0x01, ms_adm_type_values), lambda pkt:pkt.iflag in [0x05, 0x07] or pkt.opcode == 0x0),
-        ConditionalField(IntToStrField("adm_recsize", 104, 11), lambda pkt:pkt.iflag in [0x05, 0x07] or pkt.opcode == 0x0),
-        ConditionalField(IntToStrField("adm_recno", 1, 11), lambda pkt:pkt.iflag in [0x05, 0x07] or pkt.opcode == 0x0),
-        ConditionalField(PacketListField("adm_records", None, SAPMSAdmRecord), lambda pkt:pkt.iflag in [0x05, 0x07] or pkt.opcode == 0x0),
+        ConditionalField(StrField("opcode_value", ""), lambda pkt:pkt.iflag in [0x00, 0x01] and pkt.opcode not in [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x11, 0x1c, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2f, 0x43, 0x44, 0x45, 0x46, 0x47, 0x4a]),
+        ConditionalField(StrField("opcode_trailer", ""), lambda pkt:pkt.iflag in [0x00, 0x01] and pkt.opcode not in [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x11, 0x1c, 0x1e, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2f, 0x43, 0x44, 0x45, 0x46, 0x47, 0x4a]),
+
+
+        # Dispatcher info
+        ConditionalField(ByteField("dp_version", 0x0), lambda pkt:pkt.opcode == 0x0 or (pkt.opcode_version == 0x00 and pkt.opcode_charset == 0x00)),
+        ConditionalField(PacketLenField("dp_info1", SAPDPInfo1(), SAPDPInfo1, length_from=lambda x: 507), lambda pkt:(pkt.opcode == 0x0 or (pkt.opcode_version == 0x00 and pkt.opcode_charset == 0x00)) and pkt.dp_version == 0x0d), # 745 kernel
+
+        ConditionalField(PacketLenField("dp_info2", SAPDPInfo2(), SAPDPInfo2, length_from=lambda x: 203), lambda pkt:(pkt.opcode == 0x0 or (pkt.opcode_version == 0x00 and pkt.opcode_charset == 0x00)) and pkt.dp_version == 0x0b), # 720 kernel
+
+        ConditionalField(PacketLenField("dp_info3", SAPDPInfo3(), SAPDPInfo3, length_from=lambda x: 179), lambda pkt:(pkt.opcode == 0x0 or (pkt.opcode_version == 0x00 and pkt.opcode_charset == 0x00)) and pkt.dp_version == 0x0e), # 749 kernel
+
+        # MS ADM layer
+        ConditionalField(StrFixedLenField("adm_eyecatcher", "AD-EYECATCH\x00", 12), lambda pkt: pkt.iflag in [0x00, 0x02, 0x05, 0x07] or pkt.opcode == 0x0),
+        ConditionalField(ByteField("adm_version", 0x01), lambda pkt:pkt.iflag in [0x00, 0x02, 0x05, 0x07] or pkt.opcode == 0x0),
+        ConditionalField(ByteEnumKeysField("adm_type", 0x01, ms_adm_type_values), lambda pkt:pkt.iflag in [0x00, 0x02, 0x05, 0x07] or pkt.opcode == 0x0),
+        ConditionalField(IntToStrField("adm_recsize", 104, 11), lambda pkt:pkt.iflag in [0x00, 0x02, 0x05, 0x07] or pkt.opcode == 0x0),
+        ConditionalField(IntToStrField("adm_recno", 1, 11), lambda pkt:pkt.iflag in [0x00, 0x02, 0x05, 0x07] or pkt.opcode == 0x0),
+        ConditionalField(PacketListField("adm_records", None, SAPMSAdmRecord), lambda pkt:pkt.iflag in [0x00, 0x02, 0x05, 0x07] or pkt.opcode == 0x0),
 
         # Server List fields
         ConditionalField(PacketListField("clients", None, SAPMSClient1), lambda pkt:pkt.opcode in [0x02, 0x03, 0x04, 0x05] and pkt.opcode_version == 0x01),
@@ -868,7 +1152,7 @@ class SAPMS(Packet):
         # Codepage
         ConditionalField(IntField("codepage", 0), lambda pkt:pkt.opcode == 0x1c and pkt.flag == 0x03),
 
-        # Dump Info Request fields
+        # # Dump Info Request fields
         ConditionalField(ByteField("dump_dest", 0x02), lambda pkt:pkt.opcode == 0x1E and pkt.flag == 0x02),
         ConditionalField(StrFixedLenField("dump_filler", "\x00\x00\x00", 3), lambda pkt:pkt.opcode == 0x1E and pkt.flag == 0x02),
         ConditionalField(ShortField("dump_index", 0x00), lambda pkt:pkt.opcode == 0x1E and pkt.flag == 0x02),
