@@ -1015,7 +1015,8 @@ class SAPDPInfo3(Packet):
         ShortField("dp_padd13", 0x0),
         ByteEnumKeysField("dp_worker_type_from", 0x1, dp_worker_type_values),
 
-        ShortField("dp_worker_from_num", 0x0),
+        ByteField("dp_worker_from_num", 0x0),
+        ByteField("dp_padd133", 0x0),
         ShortField("dp_padd111", 0x0000),
         ByteField("dp_padd11", 0x00),
 
@@ -1040,8 +1041,10 @@ class SAPDPInfo3(Packet):
 
         ByteEnumKeysField("dp_worker_type_to", 0x1, dp_worker_type_values),
         ShortField("dp_padd22", 0x0),
-        ShortField("dp_worker_to_num", 0x0),
+        ByteField("dp_worker_to_num", 0x0),
+        ByteField("dp_padd222", 0x0),
 
+        
         IntField("dp_padd23", 0x0),
 
         ByteField("dp_addr_to_t", 0x0),
