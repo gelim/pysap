@@ -752,7 +752,7 @@ class SAPMSProperty(Packet):
     """
     name = "SAP Message Server Property"
     fields_desc = [
-        StrNullFixedLenField("client", None, 39),
+        StrNullFixedLenField("client", None, 40),
         IntEnumField("id", 0x00, ms_property_id_values),
 
         # MS_PROPERTY_VHOST
@@ -779,7 +779,7 @@ class SAPMSProperty(Packet):
         ConditionalField(ByteField("value", 0), lambda pkt:pkt.id in [0x05]),
 
         # Release Information fields
-        ConditionalField(StrNullFixedLenField("release", "720", length=9), lambda pkt:pkt.id in [0x07]),
+        ConditionalField(StrNullFixedLenField("release", "720", length=10), lambda pkt:pkt.id in [0x07]),
         ConditionalField(IntField("patchno", 0), lambda pkt:pkt.id in [0x07]),
         ConditionalField(IntField("supplvl", 0), lambda pkt:pkt.id in [0x07]),
         ConditionalField(IntField("platform", 0), lambda pkt:pkt.id in [0x07]),
