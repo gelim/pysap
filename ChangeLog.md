@@ -2,7 +2,23 @@ Changelog
 =========
 
 
-v0.1.15 - 2018-XX-XX
+v0.1.17 - 2018-XX-XX
+--------------------
+
+- `pysap/SAPCAR.py`; Fixed crafting of archive files by defaulting length fields to zero ([\#22](https://github.com/CoreSecurity/pysap/issues/22)) Thanks [@okuuva](https://github.com/okuuva)!
+
+
+v0.1.16 - 2018-06-19
+--------------------
+
+- Using Scapy version 2.4.0.
+- Using Sphinx 1.7.4 for documentation.
+- Added missing `pysap.utils` package in source/binary packages.
+- Use flake8 to find syntax errors and undefined names in Travis ([\#20](https://github.com/CoreSecurity/pysap/pull/20)) Thanks [@cclauss](https://github.com/cclauss)!
+- `pysap/SAPCAR.py`: Improved SAPCAR files parsing, adding proper structure names based on VSI documentation.
+
+
+v0.1.15 - 2018-03-27
 --------------------
 
 - Version released at Troopers'18
@@ -11,13 +27,13 @@ v0.1.15 - 2018-XX-XX
 - `bin/pysapgenpse`: New binary tool for working with PSE and SSO credential files.
 - `bin/pysapcar`: Added options for creating a new archive and appending files to an existing one.
 - `pysap/SAPCredv2.py`: New module for SSO Credential files definitions and decryption logic.
-- `pysap/SAPDiagItems.py`, `extra/parsesupportbits.py`: Corrected order of support data bit fields ([\#19](https://github.com/CoreSecurity/pysap/pull/18)). Thanks [@hnzlmnn](https://github.com/hnzlmnn)!
+- `pysap/SAPDiagItems.py`, `extra/parsesupportbits.py`: Corrected order of support data bit fields ([\#18](https://github.com/CoreSecurity/pysap/pull/18)). Thanks [@hnzlmnn](https://github.com/hnzlmnn)!
 - `pysap/SAPIGS.py`: New module for IGS packets layer ([\#19](https://github.com/CoreSecurity/pysap/pull/19)).
 - `pysap/SAPLPS.py`: New module for LPS definitions and INT/DP API decryption logic.
 - `pysap/SAPMS.py`: Added Message Server Domain field, MS J2EE Cluster/Header/Service packets. Thanks Albert Zedlitz!
 - `pysap/SAPPSE.py`: New module for PSE files definitions and decryption logic.
 - `pysap/utils.py`: Moved utils classes into a package.
-- `examples/diag_login_brute_force.py`: Detect invalid clients while logins ([\#19](https://github.com/CoreSecurity/pysap/pull/17)). Thanks [@hnzlmnn](https://github.com/hnzlmnn)!
+- `examples/diag_login_brute_force.py`: Detect invalid clients while logins ([\#17](https://github.com/CoreSecurity/pysap/pull/17)). Thanks [@hnzlmnn](https://github.com/hnzlmnn)!
 - `examples/dlmanager_decrypt.py`: Replaced use of PyCrypto with Cryptography library.
 - `examples/igs_*.py`: New example scripts to interact with IGS services ([\#19](https://github.com/CoreSecurity/pysap/pull/19)).
 - `examples/rfc_monitor.py`: Added `noop` command in the monitor and version command line option.

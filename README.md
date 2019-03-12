@@ -9,7 +9,7 @@ pysap - Python library for crafting SAP's network protocols packets
 
 Copyright (C) 2012-2018 by Martin Gallo, Core Security
 
-Version 0.1.15.dev0 (XXX 2017)
+Version 0.1.17.dev0 (XXX 2018)
 
 
 Overview
@@ -100,6 +100,8 @@ Contributions made by:
   * Yvan Genuer ([@iggy38](https://github.com/iggy38))
   * Malte Heinzelmann ([@hnzlmnn](https://github.com/hnzlmnn))
   * Albert Zedlitz
+  * [@cclauss](https://github.com/cclauss)
+  * [@okuuva](https://github.com/okuuva)
 
 
 Contact
