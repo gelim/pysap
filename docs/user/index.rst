@@ -41,8 +41,8 @@ command::
 Manual installation
 ~~~~~~~~~~~~~~~~~~~
 
-The tool relays on the `Scapy <http://www.secdev.org/projects/scapy/>`_ version 2.3.3
-library for crafting packets. To install the required libraries use::
+The tool relays on the `Scapy <https://scapy.net/>`_ library for crafting
+packets. To install the required libraries use::
 
     $ pip install -r requirements.txt
 
@@ -67,7 +67,7 @@ References
 
 Additional information about the protocols and the research can be found at different publications:
 
-* `Uncovering SAP vulnerabilities: reversing and breaking the Diag protocol <https://www.coresecurity.com/corelabs-research/publications/uncovering-sap-vulnerabilities-reversing-and-breaking-diag-protocol-brucon2012>`_
+* `Uncovering SAP vulnerabilities: reversing and breaking the Diag protocol <https://www.coresecurity.com/corelabs-research/publications/uncovering-sap-vulnerabilities-reversing-and-breaking-diag-protocol>`_
 
 * `SAP’s Network Protocols Revisited <https://www.coresecurity.com/corelabs-research/publications/sap-network-protocols-revisited>`_
 
@@ -98,6 +98,8 @@ And advisories:
 * `SAP CAR Multiple Vulnerabilities <https://www.coresecurity.com/advisories/sap-car-multiple-vulnerabilities>`_
 
 * `SAP SAPCAR Heap Based Buffer Overflow Vulnerability <https://www.coresecurity.com/advisories/sap-sapcar-heap-based-buffer-overflow-vulnerability>`_
+
+* `SAP Note Assistant Insecure Handling of SAP Notes Signature Vulnerability <https://www.coresecurity.com/advisories/sap-note-assistant-insecure-handling-sap-notes-signature-vulnerability>`_
 
 Initial research about the SAP CAR file format was performed by Martin Gallo and published in `Deep-dive into SAP archive file formats <https://www.coresecurity.com/corelabs-research/publications/deep-dive-sap-archive-file-formats>`_
 at the `Troopers 2016 Security Conference <https://www.troopers.de/troopers16/agenda/>`_. Additional research was

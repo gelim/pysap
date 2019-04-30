@@ -2,10 +2,11 @@ Changelog
 =========
 
 
-v0.1.17 - 2018-XX-XX
+v0.1.17 - 2019-XX-XX
 --------------------
 
-- `pysap/SAPCAR.py`; Fixed crafting of archive files by defaulting length fields to zero ([\#22](https://github.com/CoreSecurity/pysap/issues/22)) Thanks [@okuuva](https://github.com/okuuva)!
+- `pysap/SAPCAR.py`; Fixed crafting of archive files by defaulting length fields to zero ([\#22](https://github.com/SecureAuthCorp/pysap/issues/22)) Thanks [@okuuva](https://github.com/okuuva)!
+- `examples/router_scanner.py`: Add capability to provide a comma separated list of targets/ports to scan.
 
 
 v0.1.16 - 2018-06-19
@@ -14,7 +15,7 @@ v0.1.16 - 2018-06-19
 - Using Scapy version 2.4.0.
 - Using Sphinx 1.7.4 for documentation.
 - Added missing `pysap.utils` package in source/binary packages.
-- Use flake8 to find syntax errors and undefined names in Travis ([\#20](https://github.com/CoreSecurity/pysap/pull/20)) Thanks [@cclauss](https://github.com/cclauss)!
+- Use flake8 to find syntax errors and undefined names in Travis ([\#20](https://github.com/SecureAuthCorp/pysap/pull/20)) Thanks [@cclauss](https://github.com/cclauss)!
 - `pysap/SAPCAR.py`: Improved SAPCAR files parsing, adding proper structure names based on VSI documentation.
 
 
@@ -22,20 +23,20 @@ v0.1.15 - 2018-03-27
 --------------------
 
 - Version released at Troopers'18
-- Added initial support for handling IGS (Internet Graphic Server) packets along with example scripts to play with them ([\#19](https://github.com/CoreSecurity/pysap/pull/19)) Thanks [@iggy38](https://github.com/iggy38)!
+- Added initial support for handling IGS (Internet Graphic Server) packets along with example scripts to play with them ([\#19](https://github.com/SecureAuthCorp/pysap/pull/19)) Thanks [@iggy38](https://github.com/iggy38)!
 - Added initial support for handling PSE and SSO Credential format files.
 - `bin/pysapgenpse`: New binary tool for working with PSE and SSO credential files.
 - `bin/pysapcar`: Added options for creating a new archive and appending files to an existing one.
 - `pysap/SAPCredv2.py`: New module for SSO Credential files definitions and decryption logic.
-- `pysap/SAPDiagItems.py`, `extra/parsesupportbits.py`: Corrected order of support data bit fields ([\#18](https://github.com/CoreSecurity/pysap/pull/18)). Thanks [@hnzlmnn](https://github.com/hnzlmnn)!
-- `pysap/SAPIGS.py`: New module for IGS packets layer ([\#19](https://github.com/CoreSecurity/pysap/pull/19)).
+- `pysap/SAPDiagItems.py`, `extra/parsesupportbits.py`: Corrected order of support data bit fields ([\#18](https://github.com/SecureAuthCorp/pysap/pull/18)). Thanks [@hnzlmnn](https://github.com/hnzlmnn)!
+- `pysap/SAPIGS.py`: New module for IGS packets layer ([\#19](https://github.com/SecureAuthCorp/pysap/pull/19)).
 - `pysap/SAPLPS.py`: New module for LPS definitions and INT/DP API decryption logic.
 - `pysap/SAPMS.py`: Added Message Server Domain field, MS J2EE Cluster/Header/Service packets. Thanks Albert Zedlitz!
 - `pysap/SAPPSE.py`: New module for PSE files definitions and decryption logic.
 - `pysap/utils.py`: Moved utils classes into a package.
-- `examples/diag_login_brute_force.py`: Detect invalid clients while logins ([\#17](https://github.com/CoreSecurity/pysap/pull/17)). Thanks [@hnzlmnn](https://github.com/hnzlmnn)!
+- `examples/diag_login_brute_force.py`: Detect invalid clients while logins ([\#17](https://github.com/SecureAuthCorp/pysap/pull/17)). Thanks [@hnzlmnn](https://github.com/hnzlmnn)!
 - `examples/dlmanager_decrypt.py`: Replaced use of PyCrypto with Cryptography library.
-- `examples/igs_*.py`: New example scripts to interact with IGS services ([\#19](https://github.com/CoreSecurity/pysap/pull/19)).
+- `examples/igs_*.py`: New example scripts to interact with IGS services ([\#19](https://github.com/SecureAuthCorp/pysap/pull/19)).
 - `examples/rfc_monitor.py`: Added `noop` command in the monitor and version command line option.
 - `examples/ms_*.py`: Added command line option to specify Message Server Domain.
 - `extra/pse2john.py`: New extra script to extract crypto material in John the Ripper format.
@@ -49,23 +50,23 @@ v0.1.14 - 2017-10-04
 - `pysap/SAPRouter.py`: Fixed route request for more than one SAP Router when using the native proxy.
 - `pysap/SAPRouter.py`: Allow route strings to use lowercase separator chars (e.g. "/h/host/s/port").
 - `pysap/SAPRouter.py`: Allow a `SAPRoutedStreamSocket` to bypass the NI layer if no route was specified but talk mode
-  was set to raw ([\#10](https://github.com/CoreSecurity/pysap/pull/10)).
+  was set to raw ([\#10](https://github.com/SecureAuthCorp/pysap/pull/10)).
 - `pysap/SAPRouter.py`: Enhanced the version retrieve routine by not failing when an error is returned by the server
-  ([\#11](https://github.com/CoreSecurity/pysap/issues/11)). Thanks [@gelim](https://github.com/gelim)!
-- `pysap/SAPRouter.py`: Fixed missing eyecatcher in control messages ([\#10](https://github.com/CoreSecurity/pysap/pull/10)).
+  ([\#11](https://github.com/SecureAuthCorp/pysap/issues/11)). Thanks [@gelim](https://github.com/gelim)!
+- `pysap/SAPRouter.py`: Fixed missing eyecatcher in control messages ([\#10](https://github.com/SecureAuthCorp/pysap/pull/10)).
   Thanks [@gelim](https://github.com/gelim)!.
 - `examples/diag_login_screen_info.py`: Script was improved by better printing technical information and
-  outputting login screen text items (language, input fields, login text) ([\#14](https://github.com/CoreSecurity/pysap/pull/14)).
+  outputting login screen text items (language, input fields, login text) ([\#14](https://github.com/SecureAuthCorp/pysap/pull/14)).
   Thanks [@gelim](https://github.com/gelim)!.
 - `examples/diag_login_brute_force.py`: Script was improved to handle currently logged in users
-  ([\#16](https://github.com/CoreSecurity/pysap/pull/16)). Thanks [@hnzlmnn](https://github.com/hnzlmnn)!
-- `example/router/admin.py`: Improved client list table display and fixed timestamps ([\#12](https://github.com/CoreSecurity/pysap/issues/12)).
+  ([\#16](https://github.com/SecureAuthCorp/pysap/pull/16)). Thanks [@hnzlmnn](https://github.com/hnzlmnn)!
+- `example/router/admin.py`: Improved client list table display and fixed timestamps ([\#12](https://github.com/SecureAuthCorp/pysap/issues/12)).
   Thanks [@gelim](https://github.com/gelim)!.
 - `examples/ms_dump_param.py`: New example script to list Message Server parameters and check them against a list of
-  expected values ([\#15](https://github.com/CoreSecurity/pysap/pull/15)). Thanks [@iggy38](https://github.com/iggy38)!
+  expected values ([\#15](https://github.com/SecureAuthCorp/pysap/pull/15)). Thanks [@iggy38](https://github.com/iggy38)!
 - `examples/ms_dos_exploit.py`: New example script to check for [CVE-2017-5997](https://erpscan.com/advisories/erpscan-16-038-sap-message-server-http-remote-dos/)
   DoS vulnerability on Message Server and fixed at [SAP Note 2358972](https://launchpad.support.sap.com/#/notes/2358972)
-  ([\#10](https://github.com/CoreSecurity/pysap/pull/10)). Thanks [@vah13](https://github.com/vah13) and [@gelim](https://github.com/gelim)!
+  ([\#10](https://github.com/SecureAuthCorp/pysap/pull/10)). Thanks [@vah13](https://github.com/vah13) and [@gelim](https://github.com/gelim)!
 
 
 v0.1.13 - 2017-02-16
@@ -97,7 +98,7 @@ v0.1.12 - 2016-12-16
 - `examples/diag_capturer.py`: Added option to display available capture interfaces.
 - `examples/enqueue_dos_exploit.py`: New example script to check for [CVE-2016-4015](https://erpscan.com/advisories/erpscan-16-019-sap-netweaver-enqueue-server-dos-vulnerability/)
   DoS vulnerability on Standalone Enqueue Server and fixed at [SAP Note 2258784](https://launchpad.support.sap.com/#/notes/0002258784)
-  ([\#6](https://github.com/CoreSecurity/pysap/pull/6)). Thanks [@vah13](https://github.com/vah13)!
+  ([\#6](https://github.com/SecureAuthCorp/pysap/pull/6)). Thanks [@vah13](https://github.com/vah13)!
 - `examples/router_fingerprints.json`: Added fingerprints from SAP Router releases 745.
 
 
@@ -144,8 +145,8 @@ v0.1.8 - 2015-10-29
 
 - Enabled travis containers for more quick builds.
 - Minor documentation and README improvements.
-- `pysap/SAPRouter.py`: Documented some version numbers from old releases ([\#3](https://github.com/CoreSecurity/pysap/pull/3)). Thanks [invisiblethreat](https://github.com/invisiblethreat)!
-- `pysapcompress/vpa108csulzh.cpp`: Improved the fix for CVE-2015-2278 by properly initializing arrays ([\#4](https://github.com/CoreSecurity/pysap/pull/4)). Thanks [ret5ret](https://github.com/ret5ret)!
+- `pysap/SAPRouter.py`: Documented some version numbers from old releases ([\#3](https://github.com/SecureAuthCorp/pysap/pull/3)). Thanks [invisiblethreat](https://github.com/invisiblethreat)!
+- `pysapcompress/vpa108csulzh.cpp`: Improved the fix for CVE-2015-2278 by properly initializing arrays ([\#4](https://github.com/SecureAuthCorp/pysap/pull/4)). Thanks [ret5ret](https://github.com/ret5ret)!
 - `examples/diag_render_login_screen.py`: Fail gracefully if `wx` is not found.
 - `examples/router_password_check.py`: Updating the `fau_timer` library in use and failing gracefully if it's not found.
 - `examples/router_fingerprint.py`: New example script for performing fingerprint over SAP Router versions.
