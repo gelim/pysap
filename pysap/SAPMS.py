@@ -1,10 +1,10 @@
 # ===========
 # pysap - Python library for crafting SAP's network protocols packets
 #
-# Copyright (C) 2012-2018 by Martin Gallo, Core Security
+# SECUREAUTH LABS. Copyright (C) 2019 SecureAuth Corporation. All rights reserved.
 #
 # The library was designed and developed by Martin Gallo from
-# Core Security's CoreLabs team.
+# the SecureAuth Labs team.
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -863,7 +863,7 @@ class SAPDPInfo1(Packet):
         ByteEnumKeysField("dp_req_prio", 0x1, dp_prio_values),
         IntField("dp_user_trace", 0x0),
         IntField("dp_req_len", 0x0),
-    
+
         ShortField("dp_padd3", 0x0),
         ByteField("dp_padd4", 0x0),
         ByteEnumKeysField("dp_type_from", 0x2, dp_type_values),
@@ -977,7 +977,7 @@ class SAPDPInfo2(Packet):
         ByteField("dp_addr_to_m", 0x0),
         ByteField("dp_blob_16", 0x0),
         ShortField("dp_respid_to", 0x0),
-        
+
         StrFixedLenField("dp_blob_17", "\xff\xff\xff\xff", 4),
         StrFixedLenField("dp_blob_18", "\x00\x00\x00\x00", 4),
         Field("dp_blob_19", 0x1, '<L'),
@@ -1046,7 +1046,6 @@ class SAPDPInfo3(Packet):
         ByteField("dp_worker_to_num", 0x0),
         ByteField("dp_padd222", 0x0),
 
-        
         IntField("dp_padd23", 0x0),
 
         ByteField("dp_addr_to_t", 0x0),
@@ -1155,7 +1154,7 @@ class SAPMS(Packet):
         # Codepage
         ConditionalField(IntField("codepage", 0), lambda pkt:pkt.opcode == 0x1c and pkt.flag == 0x03),
 
-        # # Dump Info Request fields
+        # Dump Info Request fields
         ConditionalField(ByteField("dump_dest", 0x02), lambda pkt:pkt.opcode == 0x1E and pkt.flag == 0x02),
         ConditionalField(StrFixedLenField("dump_filler", "\x00\x00\x00", 3), lambda pkt:pkt.opcode == 0x1E and pkt.flag == 0x02),
         ConditionalField(ShortField("dump_index", 0x00), lambda pkt:pkt.opcode == 0x1E and pkt.flag == 0x02),
